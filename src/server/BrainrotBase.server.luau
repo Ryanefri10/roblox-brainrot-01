@@ -14,8 +14,6 @@ local State = require(script.Parent:WaitForChild("BrainrotState"))
 local remotes = Remotes.getRemotes()
 local syncEvent = remotes:WaitForChild("BrainrotSync")
 
--- Colour a plot's floor for its owner: bright green, the safe zone the
--- tsunami can never touch. Other plots keep the plain grass green.
 local function paintPlotFloor(plotIndex, owned)
 	local bay = Workspace:WaitForChild("BrainrotBay")
 	local plot = bay:FindFirstChild("BasePlot" .. plotIndex)
@@ -28,7 +26,6 @@ local function paintPlotFloor(plotIndex, owned)
 	end
 end
 
--- Write the owner's name on the plot sign, under its number.
 local function namePlotSign(plotIndex, ownerName)
 	local bay = Workspace:WaitForChild("BrainrotBay")
 	local plot = bay:FindFirstChild("BasePlot" .. plotIndex)
@@ -43,7 +40,6 @@ local function namePlotSign(plotIndex, ownerName)
 	end
 end
 
--- Set up a player: a plot, a leaderstats Cash value, and a first sync.
 local function setupPlayer(player)
 	local playerState = State.getPlayerState(player)
 	local plotIndex = State.assignPlot(player)
@@ -72,7 +68,6 @@ for _, player in ipairs(Players:GetPlayers()) do
 	setupPlayer(player)
 end
 
--- Free the plot and its colour when a player leaves.
 Players.PlayerRemoving:Connect(function(player)
 	local playerState = State.Players[player]
 	if playerState and playerState.PlotIndex ~= 0 then
@@ -82,9 +77,6 @@ Players.PlayerRemoving:Connect(function(player)
 	State.removePlayer(player)
 end)
 
--- The income tick, once a second: every based brainrot pays, cash and
--- total earned rise, leaderstats follow, and every client is synced.
--- Total earned is what unlocks Rebirth, so it only ever grows.
 task.spawn(function()
 	while true do
 		task.wait(1)

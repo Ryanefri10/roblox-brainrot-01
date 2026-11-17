@@ -19,7 +19,6 @@ local WaveFolder = Instance.new("Folder")
 WaveFolder.Name = "TsunamiWave"
 WaveFolder.Parent = Workspace
 
--- Build the wave wall: a tall translucent blue slab spanning the bay.
 local function buildWaveWall()
 	local wall = Instance.new("Part")
 	wall.Name = "WaveWall"
@@ -44,16 +43,12 @@ local function buildWaveWall()
 	return wall, crest
 end
 
--- Sweep one player with the wave: drop a carried brainrot, or knock an
--- empty-handed player gently back toward their own base. No damage, no
--- lost progress, ever.
 local function sweepPlayer(player, playerState)
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	if not root then
 		return
 	end
-	-- Safe on your own green base: the wave passes you by.
 	if playerState.PlotIndex ~= 0 and Config.pointInPlot(root.Position, playerState.PlotIndex) then
 		return
 	end
@@ -65,7 +60,6 @@ local function sweepPlayer(player, playerState)
 			State.returnBrainrotToBelt(record)
 		end
 	else
-		-- A gentle shove home: 12 studs toward your plot, no damage.
 		local center = playerState.PlotIndex ~= 0 and Config.plotCenter(playerState.PlotIndex) or Vector3.new(0, 0, 68)
 		local direction = Vector3.new(center.X - root.Position.X, 0, center.Z - root.Position.Z)
 		if direction.Magnitude > 1 then
@@ -75,15 +69,12 @@ local function sweepPlayer(player, playerState)
 	end
 end
 
--- One full wave cycle: warn, then sweep, then rest until the next one.
 local function runWaveCycle()
 	State.NextWaveAt = os.clock() + Config.Wave.CycleSeconds
 	while true do
 		task.wait(Config.Wave.CycleSeconds - Config.Wave.WarningSeconds)
-		-- Ten seconds of warning: banner and timer on every client.
 		waveAlert:FireAllClients("warning", Config.Wave.WarningSeconds)
 		task.wait(Config.Wave.WarningSeconds)
-		-- The wave itself: the wall sweeps the bay from north to south.
 		waveAlert:FireAllClients("wave", Config.Wave.SweepSeconds)
 		local wall, crest = buildWaveWall()
 		local steps = 40
@@ -92,7 +83,6 @@ local function runWaveCycle()
 			local z = -95 + (190 * step / steps)
 			wall.CFrame = CFrame.new(0, Config.Wave.WallHeight / 2, z)
 			crest.CFrame = CFrame.new(0, Config.Wave.WallHeight, z)
-			-- Anyone the wall has passed who is still outside is swept.
 			for _, player in ipairs(Players:GetPlayers()) do
 				local playerState = State.Players[player]
 				local character = player.Character

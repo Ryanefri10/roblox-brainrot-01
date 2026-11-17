@@ -9,7 +9,18 @@ local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Br
 
 local Models = {}
 
--- Make one Part of the model, scaled with the character.
+function Models.hexColor(hex)
+	return Color3.fromRGB(
+		tonumber(hex:sub(1, 2), 16),
+		tonumber(hex:sub(3, 4), 16),
+		tonumber(hex:sub(5, 6), 16)
+	)
+end
+
+local function vec3(t)
+	return Vector3.new(t[1], t[2], t[3])
+end
+
 local function makePart(name, size, offset, color, parent, shape, material)
 	local part = Instance.new("Part")
 	part.Name = name
@@ -31,8 +42,6 @@ local function makePart(name, size, offset, color, parent, shape, material)
 	return part
 end
 
--- Build a brainrot Model at the origin, feet on Y = 0, facing +Z.
--- `mutation` is a BrainrotConfig.Mutations entry or nil.
 function Models.buildBrainrot(character, mutation)
 	local scale = character.Scale or 1
 	local model = Instance.new("Model")
@@ -42,27 +51,23 @@ function Models.buildBrainrot(character, mutation)
 		return vector * scale
 	end
 
-	-- Chunky body: torso, head, two arms, two legs. Every part is a box
-	-- (or a ball where the config says so), so the cast reads as Roblox.
-	local torso = makePart("Torso", scaled(Vector3.new(2, 2, 1.4)), scaled(Vector3.new(0, 0.4, 0)), character.Body, model)
+	local bodyColor = Models.hexColor(character.Body)
+	local headColor = Models.hexColor(character.Head)
+	local torso = makePart("Torso", scaled(Vector3.new(2, 2, 1.4)), scaled(Vector3.new(0, 0.4, 0)), bodyColor, model)
 	torso.CanQuery = true -- the torso carries the ClickDetector: buy on the belt, steal on a base
-	makePart("Head", scaled(Vector3.new(1.8, 1.6, 1.6)), scaled(Vector3.new(0, 1.9, 0)), character.Head, model)
-	makePart("ArmL", scaled(Vector3.new(0.7, 1.8, 0.7)), scaled(Vector3.new(-1.4, 0.4, 0)), character.Body, model)
-	makePart("ArmR", scaled(Vector3.new(0.7, 1.8, 0.7)), scaled(Vector3.new(1.4, 0.4, 0)), character.Body, model)
-	makePart("LegL", scaled(Vector3.new(0.8, 1.2, 0.8)), scaled(Vector3.new(-0.55, -1.2, 0)), character.Body, model)
-	makePart("LegR", scaled(Vector3.new(0.8, 1.2, 0.8)), scaled(Vector3.new(0.55, -1.2, 0)), character.Body, model)
+	makePart("Head", scaled(Vector3.new(1.8, 1.6, 1.6)), scaled(Vector3.new(0, 1.9, 0)), headColor, model)
+	makePart("ArmL", scaled(Vector3.new(0.7, 1.8, 0.7)), scaled(Vector3.new(-1.4, 0.4, 0)), bodyColor, model)
+	makePart("ArmR", scaled(Vector3.new(0.7, 1.8, 0.7)), scaled(Vector3.new(1.4, 0.4, 0)), bodyColor, model)
+	makePart("LegL", scaled(Vector3.new(0.8, 1.2, 0.8)), scaled(Vector3.new(-0.55, -1.2, 0)), bodyColor, model)
+	makePart("LegR", scaled(Vector3.new(0.8, 1.2, 0.8)), scaled(Vector3.new(0.55, -1.2, 0)), bodyColor, model)
 
-	-- Eyes: two dark boxes on the face, so every brainrot has a face.
 	makePart("EyeL", scaled(Vector3.new(0.35, 0.45, 0.15)), scaled(Vector3.new(-0.45, 2.0, 0.85)), Color3.fromRGB(20, 20, 20), model)
 	makePart("EyeR", scaled(Vector3.new(0.35, 0.45, 0.15)), scaled(Vector3.new(0.45, 2.0, 0.85)), Color3.fromRGB(20, 20, 20), model)
 
-	-- The character's own accessories, straight from the config.
 	for _, extra in ipairs(character.Extras) do
-		makePart(extra.Name, scaled(extra.Size), scaled(extra.Offset), extra.Color, model, extra.Shape, extra.Material)
+		makePart(extra[1], scaled(vec3(extra[2])), scaled(vec3(extra[3])), Models.hexColor(extra[4]), model, extra[5], extra[6])
 	end
 
-	-- Mutation: a coloured glow and a neon trim ring at the feet, so a
-	-- mutated brainrot is obvious from across the bay.
 	if mutation then
 		local glow = Instance.new("PointLight")
 		glow.Name = "MutationGlow"
@@ -81,8 +86,6 @@ function Models.buildBrainrot(character, mutation)
 		)
 	end
 
-	-- Name plate: name, rarity and dollars per second, readable in a
-	-- screenshot and in play. The mutation, when there is one, joins it.
 	local plate = Instance.new("BillboardGui")
 	plate.Name = "NamePlate"
 	plate.Size = UDim2.fromOffset(220, 64)
@@ -117,7 +120,6 @@ function Models.buildBrainrot(character, mutation)
 	return model
 end
 
--- "$50  •  $2/s" or, mutated, "GOLD $50  •  $4/s": the plate's second line.
 function Models.rateText(character, mutation)
 	local income = character.Income
 	local prefix = ""
@@ -128,7 +130,6 @@ function Models.rateText(character, mutation)
 	return string.format("%s$%d  •  $%d/s", prefix, character.Price, income)
 end
 
--- A short price tag for the belt: "$50" in the rarity colour.
 function Models.priceText(character)
 	return string.format("$%d", character.Price)
 end

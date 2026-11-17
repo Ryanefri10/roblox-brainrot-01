@@ -16,8 +16,6 @@ local BeltFolder = Instance.new("Folder")
 BeltFolder.Name = "BeltBrainrots"
 BeltFolder.Parent = Workspace
 
--- Where a brainrot stands on its owner's base: slot pads are two rows of
--- four, four studs apart, centred on the plot.
 local function slotPosition(plotIndex, slot)
 	local center = Config.plotCenter(plotIndex)
 	local row = math.floor((slot - 1) / 4)
@@ -25,15 +23,11 @@ local function slotPosition(plotIndex, slot)
 	return Vector3.new(center.X + (col - 1.5) * 4, Config.Plots.FloorTopY + 0.5, center.Z + (row - 0.5) * 4)
 end
 
--- Put a model's feet at a ground point, facing a direction. A model's
--- pivot is its torso, which sits 2.2 studs above its feet (times scale).
 local function placeModel(model, groundPosition, facing, scale)
 	local pivotY = groundPosition.Y + 2.2 * (scale or 1)
 	model:PivotTo(CFrame.new(groundPosition.X, pivotY, groundPosition.Z) * CFrame.Angles(0, facing, 0))
 end
 
--- The click detector a belt brainrot carries, so a player can click it to
--- buy it. The buy itself lives in BrainrotState, next to every other rule.
 local function attachBuyClick(record)
 	local click = Instance.new("ClickDetector")
 	click.Name = "BuyClick"
@@ -44,7 +38,6 @@ local function attachBuyClick(record)
 	end)
 end
 
--- Spawn one brainrot at the dock and set it walking down the belt.
 local function spawnBrainrotOnBelt()
 	local character = Config.rollCharacter()
 	local mutation = Config.rollMutation()
@@ -58,10 +51,6 @@ local function spawnBrainrotOnBelt()
 	return record
 end
 
--- Send a brainrot back to the belt (dropped by a wave, or a steal that
--- fell through): it walks the belt again from the dock with fresh time.
--- The state module calls this hook; the spawner owns the belt, so the
--- spawner defines what "back to the belt" means.
 function State.returnBrainrotToBelt(record)
 	record.Place = "belt"
 	record.Owner = nil
@@ -79,8 +68,6 @@ function State.returnBrainrotToBelt(record)
 	State.Belt[record.Id] = record
 end
 
--- The click detector a based brainrot carries, so another player can
--- click it to start stealing it. The steal itself lives in BrainrotState.
 local function attachStealClick(record)
 	local click = Instance.new("ClickDetector")
 	click.Name = "StealClick"
@@ -91,7 +78,6 @@ local function attachStealClick(record)
 	end)
 end
 
--- Where a based brainrot's pivot sits: its slot pad, plus a gentle bob.
 local function basedPivot(record, playerState, now)
 	local base = slotPosition(playerState.PlotIndex, record.Slot)
 	local bob = math.sin(now * 2 + record.Id) * 0.15
@@ -99,9 +85,6 @@ local function basedPivot(record, playerState, now)
 	return Vector3.new(base.X, pivotY, base.Z)
 end
 
--- Move every brainrot one step. Belt ones walk toward +Z and despawn at
--- the end; following ones hurry after their owner; based ones bob gently
--- on their slot pad, earning.
 local function moveBrainrots(dt)
 	local now = os.clock()
 	for id, record in pairs(State.Belt) do
@@ -140,7 +123,6 @@ local function moveBrainrots(dt)
 					local facing = math.atan2(-direction.X, -direction.Z)
 					model:PivotTo(CFrame.new(next.X, pivot.Position.Y, next.Z) * CFrame.Angles(0, facing, 0))
 				end
-				-- Home: stepping onto your own plot plants the brainrot.
 				if playerState.PlotIndex ~= 0 and Config.pointInPlot(root.Position, playerState.PlotIndex) then
 					local slot = State.nextFreeSlot(playerState)
 					if slot ~= 0 then
@@ -161,7 +143,6 @@ end
 
 RunService.Heartbeat:Connect(moveBrainrots)
 
--- A new brainrot rides in every few seconds, for as long as the server runs.
 task.spawn(function()
 	while true do
 		task.wait(Config.Belt.SpawnIntervalSeconds)
@@ -172,14 +153,10 @@ task.spawn(function()
 	end
 end)
 
--- The first three brainrots arrive at once, so the belt is never empty
--- when a player joins: one of them is always the cheap first buy.
 for _ = 1, 3 do
 	spawnBrainrotOnBelt()
 end
 
--- Keep the belt tidy when a player leaves mid-carry: their following
--- brainrot walks back to the belt instead of vanishing.
 Players.PlayerRemoving:Connect(function(player)
 	local playerState = State.Players[player]
 	if not playerState then

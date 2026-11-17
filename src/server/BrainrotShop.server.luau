@@ -15,8 +15,6 @@ local rebirthEvent = remotes:WaitForChild("Rebirth")
 local lockEvent = remotes:WaitForChild("LockBase")
 local syncEvent = remotes:WaitForChild("BrainrotSync")
 
--- Tell one player the outcome of their action, through the sync channel
--- the client already listens to: a notice line under the HUD.
 local function notify(player, text)
 	local playerState = State.Players[player]
 	if not playerState then
@@ -27,7 +25,6 @@ local function notify(player, text)
 	syncEvent:FireClient(player, snapshot)
 end
 
--- Buy the brainrot on the belt: pay, and it follows you home.
 buyEvent.OnServerEvent:Connect(function(player, brainrotId)
 	local ok, message = State.buyBrainrot(player, brainrotId)
 	if ok then
@@ -37,8 +34,6 @@ buyEvent.OnServerEvent:Connect(function(player, brainrotId)
 	end
 end)
 
--- Steal from another player's base: only when it is unlocked, and only
--- after the 10 second channel the state module runs.
 stealEvent.OnServerEvent:Connect(function(player, brainrotId)
 	local ok, message = State.stealBrainrot(player, brainrotId)
 	if ok then
@@ -48,7 +43,6 @@ stealEvent.OnServerEvent:Connect(function(player, brainrotId)
 	end
 end)
 
--- Rebirth: trade everything earned so far for a permanent multiplier.
 rebirthEvent.OnServerEvent:Connect(function(player)
 	local ok, message = State.requestRebirth(player)
 	if ok then
@@ -59,7 +53,6 @@ rebirthEvent.OnServerEvent:Connect(function(player)
 	end
 end)
 
--- Lock your base: 30 seconds no one can steal from it.
 lockEvent.OnServerEvent:Connect(function(player)
 	local ok, message = State.requestLock(player)
 	if ok then
@@ -69,8 +62,6 @@ lockEvent.OnServerEvent:Connect(function(player)
 	end
 end)
 
--- A player who joins late still gets the rules: the shop list comes from
--- the shared config, so the client never needs a copy of its own.
 Players.PlayerAdded:Connect(function(player)
 	local snapshot = State.syncSnapshot(State.getPlayerState(player))
 	syncEvent:FireClient(player, snapshot)

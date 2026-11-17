@@ -21,7 +21,6 @@ local lockEvent = remotes:WaitForChild("LockBase")
 local syncEvent = remotes:WaitForChild("BrainrotSync")
 local waveAlert = remotes:WaitForChild("WaveAlert")
 
--- Money with commas: 1234567 reads as $1,234,567.
 local function formatMoney(amount)
 	local text = tostring(math.floor(amount))
 	local reversed = text:reverse()
@@ -35,7 +34,6 @@ gui.Name = "BrainrotBayGui"
 gui.ResetOnSpawn = false
 gui.Parent = playerGui
 
--- A dark rounded panel behind a label, so white text reads over the bay.
 local function makePanel(name, parent, position, size, anchor)
 	local panel = Instance.new("Frame")
 	panel.Name = name
@@ -85,27 +83,22 @@ local function makeButton(name, parent, position, size, text, textSize, color)
 	return button
 end
 
--- Cash, big, top-right, with dollars per second under it.
 local cashPanel = makePanel("CashPanel", gui, UDim2.new(1, -16, 0, 16), UDim2.fromOffset(280, 96), Vector2.new(1, 0))
 local cashLabel = makeLabel("Cash", cashPanel, UDim2.new(0, 16, 0, 8), UDim2.new(1, -32, 0, 44), "$500", 36, Config.Palette.MoneyGreen)
 local incomeLabel = makeLabel("Income", cashPanel, UDim2.new(0, 16, 0, 52), UDim2.new(1, -32, 0, 32), "$0/s", 24, Config.Palette.HudWhite)
 
--- Wave timer, top-centre.
 local wavePanel = makePanel("WavePanel", gui, UDim2.new(0.5, 0, 0, 16), UDim2.fromOffset(300, 52), Vector2.new(0.5, 0))
 local waveLabel = makeLabel("WaveTimer", wavePanel, UDim2.new(0, 0, 0, 0), UDim2.fromScale(1, 1), "🌊 Wave in 90s", 24, Color3.fromRGB(140, 200, 255), Vector2.new(0, 0))
 waveLabel.TextXAlignment = Enum.TextXAlignment.Center
 
--- Base line, under the cash panel: slots, rebirths, multiplier.
 local baseLabel = makeLabel("BaseInfo", gui, UDim2.new(1, -16, 0, 124), UDim2.fromOffset(280, 28), "Base 0/8  •  Rebirths: 0 (x1.0)", 18, Config.Palette.HudWhite, Vector2.new(1, 0))
 baseLabel.TextXAlignment = Enum.TextXAlignment.Right
 
--- Buttons, bottom-right, big enough to tap without thinking.
 local shopButton = makeButton("ShopButton", gui, UDim2.new(1, -16, 1, -188), UDim2.fromOffset(180, 52), "🛒 SHOP", 26, Color3.fromRGB(40, 140, 255), Vector2.new(1, 0))
 local rebirthButton = makeButton("RebirthButton", gui, UDim2.new(1, -16, 1, -124), UDim2.fromOffset(180, 52), "✨ REBIRTH", 26, Color3.fromRGB(150, 80, 220), Vector2.new(1, 0))
+rebirthButton.TextSize = 22 -- "✨ REBIRTH $50k" only fits the 180px button at 22
 local lockButton = makeButton("LockButton", gui, UDim2.new(1, -16, 1, -60), UDim2.fromOffset(180, 52), "🔒 LOCK BASE", 26, Color3.fromRGB(60, 160, 90), Vector2.new(1, 0))
 
--- The shop: every brainrot in the cast, cheapest first, with its rarity
--- colour, price, dollars per second and one-tap buy.
 local shopFrame = makePanel("ShopFrame", gui, UDim2.new(0.5, 0, 0.5, 0), UDim2.fromOffset(460, 520), Vector2.new(0.5, 0.5))
 shopFrame.Visible = false
 makeLabel("ShopTitle", shopFrame, UDim2.new(0, 16, 0, 10), UDim2.new(1, -32, 0, 36), "🛒 BRAINROT SHOP — click to buy off the belt", 22, Config.Palette.TitleYellow)
@@ -152,8 +145,6 @@ lockButton.MouseButton1Click:Connect(function()
 	lockEvent:FireServer()
 end)
 
--- Tutorial: the first thing a new player reads. Big, centre-top, gone
--- the moment the first brainrot is bought or after fifteen seconds.
 local tutorialLabel = makeLabel("Tutorial", gui, UDim2.new(0.5, 0, 0, 90), UDim2.fromOffset(640, 56), "👉 Buy your first brainrot on the belt!", 30, Config.Palette.TitleYellow, Vector2.new(0.5, 0))
 tutorialLabel.TextXAlignment = Enum.TextXAlignment.Center
 tutorialLabel.BackgroundTransparency = 0.3
@@ -162,7 +153,6 @@ local tutorialCorner = Instance.new("UICorner")
 tutorialCorner.CornerRadius = UDim.new(0, 12)
 tutorialCorner.Parent = tutorialLabel
 
--- Tsunami banner: hidden until the wave warns, then impossible to miss.
 local bannerLabel = makeLabel("WaveBanner", gui, UDim2.new(0.5, 0, 0, 160), UDim2.fromOffset(720, 64), "", 32, Config.Palette.DangerRed, Vector2.new(0.5, 0))
 bannerLabel.TextXAlignment = Enum.TextXAlignment.Center
 bannerLabel.BackgroundTransparency = 0.3
@@ -172,7 +162,6 @@ local bannerCorner = Instance.new("UICorner")
 bannerCorner.CornerRadius = UDim.new(0, 12)
 bannerCorner.Parent = bannerLabel
 
--- Steal progress bar, centre-bottom, only while a steal is running.
 local stealPanel = makePanel("StealPanel", gui, UDim2.new(0.5, 0, 1, -90), UDim2.fromOffset(360, 56), Vector2.new(0.5, 0))
 stealPanel.Visible = false
 local stealLabel = makeLabel("StealText", stealPanel, UDim2.new(0, 0, 0, 4), UDim2.fromScale(1, 0.5), "Stealing...", 20, Config.Palette.HudWhite)
@@ -191,7 +180,6 @@ stealBar.BackgroundColor3 = Config.Palette.MoneyGreen
 stealBar.BorderSizePixel = 0
 stealBar.Parent = stealBarBack
 
--- Notice line: the server's answer to every buy, steal, rebirth and lock.
 local noticeLabel = makeLabel("Notice", gui, UDim2.new(0.5, 0, 1, -160), UDim2.fromOffset(640, 36), "", 20, Config.Palette.HudWhite, Vector2.new(0.5, 0))
 noticeLabel.TextXAlignment = Enum.TextXAlignment.Center
 noticeLabel.Visible = false
@@ -199,7 +187,6 @@ noticeLabel.Visible = false
 local tutorialDone = false
 local noticeUntil = 0
 
--- One sync from the server redraws the whole HUD.
 syncEvent.OnClientEvent:Connect(function(snapshot)
 	cashLabel.Text = formatMoney(snapshot.Cash)
 	incomeLabel.Text = formatMoney(snapshot.IncomePerSec) .. "/s"
@@ -213,7 +200,7 @@ syncEvent.OnClientEvent:Connect(function(snapshot)
 		rebirthButton.Text = "✨ REBIRTH READY!"
 		rebirthButton.BackgroundColor3 = Color3.fromRGB(40, 200, 90)
 	else
-		rebirthButton.Text = "✨ REBIRTH (" .. formatMoney(snapshot.RebirthNeed) .. " earned)"
+		rebirthButton.Text = "✨ REBIRTH $50k"
 		rebirthButton.BackgroundColor3 = Color3.fromRGB(150, 80, 220)
 	end
 	if snapshot.LockLeft and snapshot.LockLeft > 0 then
@@ -235,14 +222,12 @@ syncEvent.OnClientEvent:Connect(function(snapshot)
 		noticeLabel.Visible = true
 		noticeUntil = os.clock() + 4
 	end
-	-- The tutorial fades once the player owns or carries a brainrot.
 	if not tutorialDone and (snapshot.SlotsUsed > 0 or snapshot.Carrying) then
 		tutorialDone = true
 		tutorialLabel.Visible = false
 	end
 end)
 
--- The tutorial also fades on its own after fifteen seconds.
 task.delay(15, function()
 	if not tutorialDone then
 		tutorialDone = true
@@ -250,7 +235,6 @@ task.delay(15, function()
 	end
 end)
 
--- A notice fades a few seconds after it appears.
 task.spawn(function()
 	while true do
 		task.wait(0.5)
@@ -260,15 +244,14 @@ task.spawn(function()
 	end
 end)
 
--- The tsunami: a warning banner with a countdown, then the wave itself.
 waveAlert.OnClientEvent:Connect(function(kind, seconds)
 	if kind == "warning" then
 		bannerLabel.Visible = true
-		bannerLabel.Text = "🌊 TSUNAMI IN " .. tostring(seconds) .. "s — RUN TO YOUR GREEN BASE!"
+		bannerLabel.Text = "🌊 TSUNAMI IN " .. tostring(seconds) .. "s — RUN TO YOUR BASE!"
 		for left = seconds - 1, 1, -1 do
 			task.wait(1)
 			if bannerLabel.Visible then
-				bannerLabel.Text = "🌊 TSUNAMI IN " .. tostring(left) .. "s — RUN TO YOUR GREEN BASE!"
+				bannerLabel.Text = "🌊 TSUNAMI IN " .. tostring(left) .. "s — RUN TO YOUR BASE!"
 			end
 		end
 	elseif kind == "wave" then
@@ -278,8 +261,6 @@ waveAlert.OnClientEvent:Connect(function(kind, seconds)
 	end
 end)
 
--- Camera intro: open high over the bay, swoop down behind the player,
--- then hand the camera back to Roblox.
 local camera = Workspace.CurrentCamera
 local function playCameraIntro()
 	local character = player.Character or player.CharacterAdded:Wait()

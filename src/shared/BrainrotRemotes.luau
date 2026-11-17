@@ -15,8 +15,6 @@ local EVENT_NAMES = {
 	"WaveAlert", -- server -> client, ("warning", seconds) or ("wave", seconds)
 }
 
--- Return the folder of RemoteEvents, creating it (and any event missing
--- from it) on first use. Safe to call from every server script.
 function Remotes.getRemotes()
 	local folder = ReplicatedStorage:FindFirstChild("BrainrotRemotes")
 	if not folder then
@@ -34,8 +32,6 @@ function Remotes.getRemotes()
 	return folder
 end
 
--- Fetch one RemoteEvent by name, waiting for the folder when the client
--- asks before the server has made it.
 function Remotes.waitForEvent(name)
 	local folder = ReplicatedStorage:WaitForChild("BrainrotRemotes", 10)
 	if not folder then

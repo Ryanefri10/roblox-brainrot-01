@@ -15,7 +15,6 @@ local world = Instance.new("Folder")
 world.Name = "BrainrotBay"
 world.Parent = Workspace
 
--- One anchored part in the world folder. Rotation in degrees around Y.
 local function addPart(name, size, position, color, material, transparency, rotationY)
 	local part = Instance.new("Part")
 	part.Name = name
@@ -32,7 +31,6 @@ local function addPart(name, size, position, color, material, transparency, rota
 	return part
 end
 
--- A warm point light, for stall lamps and the moon.
 local function addLight(parent, color, brightness, range)
 	local light = Instance.new("PointLight")
 	light.Color = color
@@ -42,13 +40,10 @@ local function addLight(parent, color, brightness, range)
 	return light
 end
 
--- The island: a wide sand disc rising out of the water.
 local island = addPart("Island", Vector3.new(170, 2, 170), Vector3.new(0, -1, 0), Palette.Sand, Enum.Material.Sand)
 island.Shape = Enum.PartType.Cylinder
 island.CFrame = CFrame.new(0, -1, 0) * CFrame.Angles(0, 0, math.rad(90))
 
--- The Brainrot Belt: a dark conveyor strip from the dock to the south
--- end, with yellow chevrons pointing the way the brainrots walk.
 local belt = addPart("BrainrotBelt", Vector3.new(Config.Belt.Width, 1, Config.Belt.EndZ - Config.Belt.StartZ), Vector3.new(0, 0.5, (Config.Belt.StartZ + Config.Belt.EndZ) / 2), Palette.BeltDark, Enum.Material.SmoothPlastic)
 belt.CanCollide = true
 for _, side in ipairs({ -1, 1 }) do
@@ -58,7 +53,6 @@ for z = Config.Belt.StartZ + 6, Config.Belt.EndZ - 4, 12 do
 	addPart("BeltChevron", Vector3.new(4, 0.2, 2), Vector3.new(0, 1.05, z), Palette.BeltStripe, Enum.Material.Neon, 0.2, 45)
 end
 
--- The dock: wooden planks at the north end, where brainrots arrive.
 for i = 0, 4 do
 	addPart("DockPlank", Vector3.new(12, 0.6, 2.4), Vector3.new(0, 0.8, Config.Belt.StartZ - 2 - i * 3), Palette.WoodLight, Enum.Material.WoodPlanks)
 end
@@ -68,10 +62,6 @@ local dockLamp = addPart("DockLamp", Vector3.new(1.2, 1.2, 1.2), Vector3.new(0, 
 dockLamp.Shape = Enum.PartType.Ball
 addLight(dockLamp, Palette.LampWarm, 2, 24)
 
--- Eight base plots in a circle: a floor, low walls at the back, corner
--- posts, a sign with the plot number, and eight slot pads where bought
--- brainrots stand and earn. The floor turns green for its owner: the
--- safe zone the tsunami can never touch.
 local plotFloors = {}
 for index = 1, Config.Plots.Count do
 	local center = Config.plotCenter(index)
@@ -93,7 +83,6 @@ for index = 1, Config.Plots.Count do
 	floor.Parent = plot
 	plotFloors[index] = floor
 
-	-- Back wall, facing the belt, and four corner posts.
 	local wall = Instance.new("Part")
 	wall.Name = "PlotWall"
 	wall.Size = Vector3.new(Config.Plots.Size, 3, 1)
@@ -118,7 +107,6 @@ for index = 1, Config.Plots.Count do
 		post.Parent = plot
 	end
 
-	-- Eight slot pads in two rows of four, where brainrots stand.
 	for slot = 1, Config.BaseSlots do
 		local row = math.floor((slot - 1) / 4)
 		local col = (slot - 1) % 4
@@ -134,7 +122,6 @@ for index = 1, Config.Plots.Count do
 		pad.Parent = plot
 	end
 
-	-- Plot sign: number above the back wall, readable from the belt.
 	local sign = Instance.new("BillboardGui")
 	sign.Name = "PlotSign"
 	sign.Size = UDim2.fromOffset(200, 60)
@@ -162,8 +149,6 @@ for index = 1, Config.Plots.Count do
 	signLabel.Parent = sign
 end
 
--- Market stalls around the rim: a counter, a striped awning and a warm
--- lamp each. They sell nothing; they make the bay feel alive at night.
 local stallColors = { Palette.StallRed, Palette.StallTeal, Palette.StallPurple, Palette.StallRed, Palette.StallTeal, Palette.StallPurple }
 for i = 1, 6 do
 	local angle = math.rad((i - 1) * 60 + 30)
@@ -179,7 +164,6 @@ for i = 1, 6 do
 	addLight(lamp, Palette.LampWarm, 1.5, 18)
 end
 
--- Palm trees between the plots, clear of the belt and the spawn.
 local palmSpots = { { -30, -38 }, { 34, -30 }, { -38, 28 }, { 40, 34 }, { -14, 58 }, { 18, -58 } }
 for i, spot in ipairs(palmSpots) do
 	addPart("PalmTrunk" .. i, Vector3.new(1.2, 10, 1.2), Vector3.new(spot[1], 5, spot[2]), Palette.WoodDark, Enum.Material.Wood)
@@ -197,13 +181,11 @@ for i, spot in ipairs(palmSpots) do
 	end
 end
 
--- The moon: a big pale ball high over the north water, with a glow.
 local moon = addPart("Moon", Vector3.new(26, 26, 26), Vector3.new(-120, 150, -190), Palette.MoonPale, Enum.Material.Neon)
 moon.Shape = Enum.PartType.Ball
 moon.CanCollide = false
 addLight(moon, Palette.MoonPale, 1, 200)
 
--- Stars: small neon dots scattered high overhead.
 math.randomseed(20261117)
 for i = 1, 48 do
 	local angle = math.random() * math.pi * 2
@@ -214,7 +196,6 @@ for i = 1, 48 do
 	star.CanCollide = false
 end
 
--- A shared lookup for the other server scripts: plot floor parts by index.
 local plotFolder = Instance.new("Folder")
 plotFolder.Name = "BrainrotPlots"
 plotFolder.Parent = world
