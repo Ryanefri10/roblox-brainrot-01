@@ -1,10 +1,19 @@
-// A working roblox-brainrot-01 entry (Node 22, standard library only): the game is this directory's Rojo
-// project, built into game.rbxl with `rojo build default.project.json --output game.rbxl`, and the program
-// hands it in. It copies game.rbxl, src/, screenshots/ and PLAY.json from beside this file to /output and
-// writes /output/dossier.json, the summary the judge reads, with the vendored make.fun library. A starting
-// point, not a winner: it is a grey square that moves with the arrow keys. Build your game, rebuild
-// game.rbxl, put your PNG or JPEG screenshots in screenshots/ (the first by name is the cover, and one of
-// them is the thumbnail you upload for your game on Roblox) and fill in PLAY.json with your published place.
+// Brainrot Bay — a roblox-brainrot-01 entry (Node 22, standard library only).
+// The game is this directory's Rojo project, built into game.rbxl with
+// `rojo build default.project.json --output game.rbxl`, and the program
+// hands it in. It copies game.rbxl, src/, screenshots/ and PLAY.json from
+// beside this file to /output and writes /output/dossier.json, the summary
+// the judge reads, with the vendored make.fun library.
+//
+// The game: a tropical night-market bay where absurd brainrots ride the
+// Brainrot Belt from the dock. Buy one with Cash, walk it home to your
+// base plot, and it earns dollars every second. Climb the rarity ladder
+// from Sir Quacksalot to King Kebab, chase Gold / Diamond / Rainbow /
+// Lava mutations, lock your base against thieves, and run home when the
+// tsunami warning sounds. Rebirth at $50,000 earned for a permanent
+// income multiplier. Four screenshots show the bay, a buy, a full base
+// and the tsunami warning; PLAY.json names the published place once the
+// owner publishes it from Roblox Studio.
 //
 // Every name under /output starts with a letter, a digit or _ and holds only letters, digits, . _ and -: the
 // grader fails an entry whose output holds any other, so a file such as .gitkeep or .DS_Store copied in fails it.
