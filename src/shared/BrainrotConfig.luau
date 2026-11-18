@@ -226,6 +226,18 @@ Config.RebirthRequiredTotalEarned = 50000
 Config.RebirthCashAfter = 500
 Config.RebirthMultiplierPerRebirth = 0.5
 
+-- Missions: the game's goal, shown as a checklist on the left of the
+-- screen. Finish all 5 and you WIN — the game has a clear ending.
+-- Kinds: "bought" = brainrots owned (anywhere), "based" = brainrots
+-- standing on your base, "earned" = TotalEarned dollars.
+Config.Missions = {
+	{ Id = "buy-first", Kind = "bought", Target = 1, Reward = 250, Text = "Buy your first brainrot" },
+	{ Id = "earn-1000", Kind = "earned", Target = 1000, Reward = 500, Text = "Earn $1,000 in total" },
+	{ Id = "own-four", Kind = "based", Target = 4, Reward = 1000, Text = "Put 4 brainrots on your base" },
+	{ Id = "earn-5000", Kind = "earned", Target = 5000, Reward = 2000, Text = "Earn $5,000 in total" },
+	{ Id = "fill-base", Kind = "based", Target = 8, Reward = 5000, Text = "Fill your base: 8/8 brainrots" },
+}
+
 Config.Belt = {
 	StartZ = -58,
 	EndZ = 52,

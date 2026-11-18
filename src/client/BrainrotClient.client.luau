@@ -145,13 +145,26 @@ lockButton.MouseButton1Click:Connect(function()
 	lockEvent:FireServer()
 end)
 
-local tutorialLabel = makeLabel("Tutorial", gui, UDim2.new(0.5, 0, 0, 90), UDim2.fromOffset(640, 56), "👉 Buy your first brainrot on the belt!", 30, Config.Palette.TitleYellow, Vector2.new(0.5, 0))
+local tutorialLabel = makeLabel("Tutorial", gui, UDim2.new(0.5, 0, 0, 90), UDim2.fromOffset(640, 56), "🎯 Goal: finish the 5 missions on the left! First: buy a brainrot on the belt!", 26, Config.Palette.TitleYellow, Vector2.new(0.5, 0))
 tutorialLabel.TextXAlignment = Enum.TextXAlignment.Center
+tutorialLabel.TextWrapped = true
 tutorialLabel.BackgroundTransparency = 0.3
 tutorialLabel.BackgroundColor3 = Config.Palette.HudDark
 local tutorialCorner = Instance.new("UICorner")
 tutorialCorner.CornerRadius = UDim.new(0, 12)
 tutorialCorner.Parent = tutorialLabel
+
+-- Missions panel (left side, under Roblox's own menu buttons): the
+-- game's goal as a checklist. Finishing all 5 wins the game.
+local missionPanel = makePanel("MissionPanel", gui, UDim2.new(0, 16, 0, 150), UDim2.fromOffset(330, 250))
+makeLabel("MissionTitle", missionPanel, UDim2.new(0, 14, 0, 10), UDim2.new(1, -28, 0, 28), "🎯 MISSIONS — finish all 5 to WIN!", 20, Config.Palette.TitleYellow)
+local missionLabels = {}
+for i, mission in ipairs(Config.Missions) do
+	local label = makeLabel("Mission" .. i, missionPanel, UDim2.new(0, 14, 0, 44 + (i - 1) * 34), UDim2.new(1, -28, 0, 30), "", 17, Config.Palette.HudWhite)
+	missionLabels[i] = label
+end
+local winLabel = makeLabel("WinLabel", missionPanel, UDim2.new(0, 14, 0, 214), UDim2.new(1, -28, 0, 28), "🏆 YOU WIN! Brainrot King!", 20, Config.Palette.MoneyGreen)
+winLabel.Visible = false
 
 local bannerLabel = makeLabel("WaveBanner", gui, UDim2.new(0.5, 0, 0, 160), UDim2.fromOffset(720, 64), "", 32, Config.Palette.DangerRed, Vector2.new(0.5, 0))
 bannerLabel.TextXAlignment = Enum.TextXAlignment.Center
@@ -216,6 +229,20 @@ syncEvent.OnClientEvent:Connect(function(snapshot)
 		stealBar.Size = UDim2.fromScale(1 - snapshot.StealLeft / Config.Steal.ChannelSeconds, 1)
 	else
 		stealPanel.Visible = false
+	end
+	if snapshot.Missions then
+		for i, mission in ipairs(snapshot.Missions) do
+			local label = missionLabels[i]
+			if label then
+				local mark = mission.Done and "✅ " or (mission.Current and "👉 " or "○ ")
+				label.Text = mark .. mission.Text .. " (" .. tostring(mission.Progress) .. "/" .. tostring(mission.Target) .. ")  +$" .. tostring(mission.Reward)
+				label.TextColor3 = mission.Done and Config.Palette.MoneyGreen
+					or (mission.Current and Config.Palette.TitleYellow or Config.Palette.HudWhite)
+			end
+		end
+	end
+	if snapshot.Won then
+		winLabel.Visible = true
 	end
 	if snapshot.Notice then
 		noticeLabel.Text = snapshot.Notice

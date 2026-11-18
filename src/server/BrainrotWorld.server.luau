@@ -124,8 +124,8 @@ for index = 1, Config.Plots.Count do
 
 	local sign = Instance.new("BillboardGui")
 	sign.Name = "PlotSign"
-	sign.Size = UDim2.fromOffset(200, 60)
-	sign.StudsOffset = Vector3.new(0, 6, 0)
+	sign.Size = UDim2.fromOffset(150, 45)
+	sign.StudsOffset = Vector3.new(0, 7, 0)
 	sign.AlwaysOnTop = true
 	sign.Parent = plot
 	local signPart = Instance.new("Part")
@@ -150,6 +150,30 @@ for index = 1, Config.Plots.Count do
 end
 
 local stallColors = { Palette.StallRed, Palette.StallTeal, Palette.StallPurple, Palette.StallRed, Palette.StallTeal, Palette.StallPurple }
+
+-- Boardwalk spokes: every base connects to the central belt on foot, so no
+-- jump across open water is ever needed to reach a base. Each spoke runs
+-- from the belt (r=5) onto its plot floor (inner edge r=43, overlap to
+-- r=46), top at y=1 exactly like the belt and the plot floors, so the
+-- whole route is one continuous walkable surface.
+for index = 1, Config.Plots.Count do
+	local center = Config.plotCenter(index)
+	local angle = math.deg(math.atan2(center.Z, center.X))
+	local midR = 25.5
+	local mid = Vector3.new(math.cos(math.rad(angle)) * midR, 0.5, math.sin(math.rad(angle)) * midR)
+	addPart("Boardwalk" .. index, Vector3.new(6, 1, 41), mid, Palette.WoodLight, Enum.Material.WoodPlanks, 0, 90 - angle)
+end
+
+-- Ring boardwalk: direct walkway between neighbouring bases, so going
+-- base-to-base never needs a jump either. Each segment joins two plot
+-- centres (39.8 studs apart) and overlaps both plot floors.
+for index = 1, Config.Plots.Count do
+	local a = Config.plotCenter(index)
+	local b = Config.plotCenter(index % Config.Plots.Count + 1)
+	local mid = Vector3.new((a.X + b.X) / 2, 0.5, (a.Z + b.Z) / 2)
+	local dx, dz = b.X - a.X, b.Z - a.Z
+	addPart("Ringwalk" .. index, Vector3.new(6, 1, 41), mid, Palette.WoodLight, Enum.Material.WoodPlanks, 0, math.deg(math.atan2(dx, dz)))
+end
 for i = 1, 6 do
 	local angle = math.rad((i - 1) * 60 + 30)
 	local x = math.cos(angle) * 72

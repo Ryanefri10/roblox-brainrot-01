@@ -29,7 +29,44 @@ function State.newPlayerState(player)
 		LockUntil = 0,
 		LockCooldownUntil = 0,
 		Brainrots = {}, -- [brainrotId] = brainrot record this player owns
+		MissionIndex = 1, -- next mission in Config.Missions (past the end = all done)
+		Won = false,
+		MissionNotice = nil, -- set by checkMissions, consumed by the next sync
 	}
+end
+
+function State.missionProgress(playerState, mission)
+	if mission.Kind == "bought" then
+		local count = 0
+		for _ in pairs(playerState.Brainrots) do
+			count += 1
+		end
+		return count
+	elseif mission.Kind == "based" then
+		return State.slotsUsed(playerState)
+	elseif mission.Kind == "earned" then
+		return math.floor(playerState.TotalEarned)
+	end
+	return 0
+end
+
+-- Grants each newly completed mission's cash reward in order, and sets
+-- MissionNotice for the next sync. Completing the last mission wins.
+function State.checkMissions(playerState)
+	while playerState.MissionIndex <= #Config.Missions do
+		local mission = Config.Missions[playerState.MissionIndex]
+		if State.missionProgress(playerState, mission) < mission.Target then
+			break
+		end
+		playerState.Cash += mission.Reward
+		playerState.MissionIndex += 1
+		if playerState.MissionIndex > #Config.Missions then
+			playerState.Won = true
+			playerState.MissionNotice = "🏆 YOU WIN! You are the Brainrot King! +$" .. tostring(mission.Reward)
+		else
+			playerState.MissionNotice = "✅ Mission done: " .. mission.Text .. "! +$" .. tostring(mission.Reward)
+		end
+	end
 end
 
 function State.getPlayerState(player)
@@ -209,6 +246,7 @@ function State.buyBrainrot(player, brainrotId)
 	record.Owner = player
 	playerState.Brainrots[record.Id] = record
 	playerState.CarryingId = record.Id
+	State.checkMissions(playerState)
 	if record.Model then
 		local click = record.Model.PrimaryPart:FindFirstChild("BuyClick")
 		if click then
@@ -317,6 +355,19 @@ function State.requestLock(player)
 end
 
 function State.syncSnapshot(playerState)
+	local missions = {}
+	for i, mission in ipairs(Config.Missions) do
+		missions[i] = {
+			Text = mission.Text,
+			Reward = mission.Reward,
+			Target = mission.Target,
+			Progress = State.missionProgress(playerState, mission),
+			Done = i < playerState.MissionIndex,
+			Current = i == playerState.MissionIndex,
+		}
+	end
+	local notice = playerState.MissionNotice
+	playerState.MissionNotice = nil
 	return {
 		Cash = math.floor(playerState.Cash),
 		IncomePerSec = math.floor(playerState.IncomePerSec or 0),
@@ -333,6 +384,9 @@ function State.syncSnapshot(playerState)
 		RebirthReady = playerState.TotalEarned >= Config.RebirthRequiredTotalEarned,
 		RebirthNeed = Config.RebirthRequiredTotalEarned,
 		WaveIn = math.floor(math.max(0, (State.NextWaveAt or 0) - os.clock())),
+		Missions = missions,
+		Won = playerState.Won,
+		Notice = notice,
 	}
 end
 

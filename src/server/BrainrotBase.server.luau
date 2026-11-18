@@ -87,6 +87,7 @@ task.spawn(function()
 				if income > 0 then
 					playerState.Cash += income
 					playerState.TotalEarned += income
+					State.checkMissions(playerState)
 					local leaderstats = player:FindFirstChild("leaderstats")
 					if leaderstats then
 						local cash = leaderstats:FindFirstChild("Cash")
