@@ -17,6 +17,9 @@
 // the bay, a buy, a full base and the tsunami warning; PLAY.json names
 // the published place once the owner publishes it from Roblox Studio.
 // (v4: Tung Tung Sahur joins the cast, income popups on the HUD.)
+// (v5: the Cash panel gains a "Next:" line naming the cheapest
+// brainrot the player cannot afford yet, and the place file is
+// guarded at the 32 MiB gate cap below.)
 //
 // Every name under /output starts with a letter, a digit or _ and holds only letters, digits, . _ and -: the
 // grader fails an entry whose output holds any other, so a file such as .gitkeep or .DS_Store copied in fails it.
@@ -38,6 +41,12 @@ const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 const placeFile = join(here, 'game.rbxl');
 if (!existsSync(placeFile) || statSync(placeFile).size === 0) {
 	throw new Error('game.rbxl is missing or empty: build it first with `rojo build default.project.json --output game.rbxl`');
+}
+
+// The gate refuses a place file over 32 MiB: fail loudly here rather
+// than handing in an entry the scorer refuses.
+if (statSync(placeFile).size > 33554432) {
+	throw new Error(`game.rbxl is ${statSync(placeFile).size} bytes, over the 32 MiB gate cap`);
 }
 
 /** cpSync's filter: leave out every file and directory whose name starts with a dot (.gitkeep, .DS_Store, .git). */

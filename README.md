@@ -16,6 +16,9 @@ run home when the tsunami warning sounds. Rebirth at $50,000 earned for a perman
   v4 build kept beside it; `screenshots/` holds four captures of it; `PLAY.json` names the published place.
   v4 adds the Mythic log-knocker Tung Tung Sahur ($180,000, $4,000/s) to the cast and a green "+$X" income
   popup under the Cash panel on every income tick, so the money is seen ticking up.
+- v5 adds a "Next:" line inside the Cash panel naming the cheapest brainrot the player cannot afford yet
+  (the savings goal / next tier), moves the base line and the income popups down to clear it, and guards
+  `game.rbxl` at the 32 MiB gate cap in `main.ts`.
 - One of your screenshots is also the game's first thumbnail on Roblox: the same picture, uploaded on the Creator
   Dashboard with the game's icon.
 - `src/shared/BrainrotConfig.luau` holds the whole cast, prices, mutations and tuning; `src/shared/BrainrotModels.luau`
