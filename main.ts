@@ -20,6 +20,9 @@
 // (v5: the Cash panel gains a "Next:" line naming the cheapest
 // brainrot the player cannot afford yet, and the place file is
 // guarded at the 32 MiB gate cap below.)
+// (v6: the Mythic shark Tralalero Tralala joins the cast, the client
+// warns the victim with a red banner while a steal is channelling,
+// and PLAY.json is validated before anything is copied.)
 //
 // Every name under /output starts with a letter, a digit or _ and holds only letters, digits, . _ and -: the
 // grader fails an entry whose output holds any other, so a file such as .gitkeep or .DS_Store copied in fails it.
@@ -28,7 +31,7 @@
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { copyFileSync, cpSync, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-roblox.ts';
@@ -47,6 +50,15 @@ if (!existsSync(placeFile) || statSync(placeFile).size === 0) {
 // than handing in an entry the scorer refuses.
 if (statSync(placeFile).size > 33554432) {
 	throw new Error(`game.rbxl is ${statSync(placeFile).size} bytes, over the 32 MiB gate cap`);
+}
+
+// PLAY.json must name a real published place: parse it and check its
+// url, place_id and universe_id now, instead of handing in an entry
+// the play-link lookup refuses.
+const playLink = JSON.parse(readFileSync(join(here, 'PLAY.json'), 'utf8')) as { url?: unknown; place_id?: unknown; universe_id?: unknown };
+const playMatch = typeof playLink.url === 'string' && /^https:\/\/www\.roblox\.com\/games\/(\d+)/.exec(playLink.url);
+if (!playMatch || Number(playMatch[1]) !== playLink.place_id || typeof playLink.universe_id !== 'number' || playLink.universe_id <= 0) {
+	throw new Error('PLAY.json is not a valid play link: url must be https://www.roblox.com/games/<placeId> with a matching place_id and a positive universe_id');
 }
 
 /** cpSync's filter: leave out every file and directory whose name starts with a dot (.gitkeep, .DS_Store, .git). */

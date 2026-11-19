@@ -354,6 +354,21 @@ function State.requestLock(player)
 	return false, "Lock is cooling down: " .. tostring(State.lockCooldownLeft(playerState)) .. "s left."
 end
 
+-- The victim's side of a steal: if someone is channelling a steal on
+-- one of this player's based brainrots, how many seconds are left and
+-- which brainrot is being taken, so the client can warn the victim.
+-- Locking the base mid-channel cancels the steal in finishSteal, so
+-- the warning is the counterplay.
+function State.stealThreat(playerState)
+	for brainrotId, pending in pairs(State.PendingSteals) do
+		local record = playerState.Brainrots[brainrotId]
+		if record and record.Place == "based" then
+			return math.max(0, pending.EndsAt - os.clock()), record.Character.Name
+		end
+	end
+	return 0, nil
+end
+
 function State.syncSnapshot(playerState)
 	local missions = {}
 	for i, mission in ipairs(Config.Missions) do
@@ -368,6 +383,7 @@ function State.syncSnapshot(playerState)
 	end
 	local notice = playerState.MissionNotice
 	playerState.MissionNotice = nil
+	local threatLeft, threatName = State.stealThreat(playerState)
 	return {
 		Cash = math.floor(playerState.Cash),
 		IncomePerSec = math.floor(playerState.IncomePerSec or 0),
@@ -381,6 +397,8 @@ function State.syncSnapshot(playerState)
 		Carrying = playerState.CarryingId ~= nil,
 		LockLeft = math.floor(State.lockSecondsLeft(playerState)),
 		LockCooldownLeft = math.floor(State.lockCooldownLeft(playerState)),
+		BeingStolen = math.floor(threatLeft),
+		BeingStolenName = threatName,
 		RebirthReady = playerState.TotalEarned >= Config.RebirthRequiredTotalEarned,
 		RebirthNeed = Config.RebirthRequiredTotalEarned,
 		WaveIn = math.floor(math.max(0, (State.NextWaveAt or 0) - os.clock())),

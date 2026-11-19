@@ -94,6 +94,15 @@ local wavePanel = makePanel("WavePanel", gui, UDim2.new(0.5, 0, 0, 16), UDim2.fr
 local waveLabel = makeLabel("WaveTimer", wavePanel, UDim2.new(0, 0, 0, 0), UDim2.fromScale(1, 1), "🌊 Wave in 90s", 24, Color3.fromRGB(140, 200, 255), Vector2.new(0, 0))
 waveLabel.TextXAlignment = Enum.TextXAlignment.Center
 
+-- Robbery alert: when someone is stealing one of YOUR brainrots, a red
+-- banner counts the channel down — locking your base mid-channel
+-- cancels the steal, so the warning is the counterplay.
+local robberyPanel = makePanel("RobberyPanel", gui, UDim2.new(0.5, 0, 0, 76), UDim2.fromOffset(560, 44), Vector2.new(0.5, 0))
+robberyPanel.BackgroundColor3 = Config.Palette.DangerRed
+robberyPanel.Visible = false
+local robberyLabel = makeLabel("RobberyText", robberyPanel, UDim2.new(0, 0, 0, 0), UDim2.fromScale(1, 1), "", 20, Config.Palette.HudWhite)
+robberyLabel.TextXAlignment = Enum.TextXAlignment.Center
+
 local baseLabel = makeLabel("BaseInfo", gui, UDim2.new(1, -16, 0, 156), UDim2.fromOffset(280, 28), "Base 0/8  •  Rebirths: 0 (x1.0)", 18, Config.Palette.HudWhite, Vector2.new(1, 0))
 baseLabel.TextXAlignment = Enum.TextXAlignment.Right
 
@@ -280,6 +289,12 @@ syncEvent.OnClientEvent:Connect(function(snapshot)
 		stealBar.Size = UDim2.fromScale(1 - snapshot.StealLeft / Config.Steal.ChannelSeconds, 1)
 	else
 		stealPanel.Visible = false
+	end
+	if snapshot.BeingStolen and snapshot.BeingStolen > 0 then
+		robberyPanel.Visible = true
+		robberyLabel.Text = "🚨 " .. (snapshot.BeingStolenName or "A brainrot") .. " IS BEING STOLEN! " .. tostring(snapshot.BeingStolen) .. "s — LOCK YOUR BASE!"
+	else
+		robberyPanel.Visible = false
 	end
 	if snapshot.Missions then
 		for i, mission in ipairs(snapshot.Missions) do
