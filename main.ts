@@ -7,13 +7,16 @@
 //
 // The game: a tropical night-market bay where absurd brainrots ride the
 // Brainrot Belt from the dock. Buy one with Cash, walk it home to your
-// base plot, and it earns dollars every second. Climb the rarity ladder
-// from Sir Quacksalot to King Kebab, chase Gold / Diamond / Rainbow /
-// Lava mutations, lock your base against thieves, and run home when the
-// tsunami warning sounds. Rebirth at $50,000 earned for a permanent
-// income multiplier. Four screenshots show the bay, a buy, a full base
-// and the tsunami warning; PLAY.json names the published place once the
-// owner publishes it from Roblox Studio.
+// base plot, and it earns dollars every second — a green "+$X" pops up
+// under the Cash panel on every income tick, so the money is seen
+// ticking. Climb the rarity ladder from Sir Quacksalot to King Kebab,
+// now through the Mythic log-knocker Tung Tung Sahur ($180,000, $4,000/s),
+// chase Gold / Diamond / Rainbow / Lava mutations, lock your base against
+// thieves, and run home when the tsunami warning sounds. Rebirth at
+// $50,000 earned for a permanent income multiplier. Four screenshots show
+// the bay, a buy, a full base and the tsunami warning; PLAY.json names
+// the published place once the owner publishes it from Roblox Studio.
+// (v4: Tung Tung Sahur joins the cast, income popups on the HUD.)
 //
 // Every name under /output starts with a letter, a digit or _ and holds only letters, digits, . _ and -: the
 // grader fails an entry whose output holds any other, so a file such as .gitkeep or .DS_Store copied in fails it.
@@ -22,13 +25,20 @@
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { copyFileSync, cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-roblox.ts';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
 const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+
+// Fail loudly when the place file is missing or empty, instead of
+// copying nothing and handing in an entry the scorer refuses.
+const placeFile = join(here, 'game.rbxl');
+if (!existsSync(placeFile) || statSync(placeFile).size === 0) {
+	throw new Error('game.rbxl is missing or empty: build it first with `rojo build default.project.json --output game.rbxl`');
+}
 
 /** cpSync's filter: leave out every file and directory whose name starts with a dot (.gitkeep, .DS_Store, .git). */
 const notDotted = (path: string): boolean => !basename(path).startsWith('.');

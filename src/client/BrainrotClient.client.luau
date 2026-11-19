@@ -199,9 +199,43 @@ noticeLabel.Visible = false
 
 local tutorialDone = false
 local noticeUntil = 0
+local lastCash = nil
+local popupCount = 0
+
+-- Income popup: every second the server pays, a green "+$X" floats up
+-- under the Cash panel and fades, so the money ticking up is visible
+-- on screen (and in a screenshot), not just a number changing.
+local function spawnIncomePopup(amount)
+	popupCount += 1
+	local lane = popupCount % 3
+	local popup = Instance.new("TextLabel")
+	popup.Name = "IncomePopup"
+	popup.AnchorPoint = Vector2.new(1, 0)
+	popup.Position = UDim2.new(1, -16, 0, 170 + lane * 26)
+	popup.Size = UDim2.fromOffset(200, 28)
+	popup.BackgroundTransparency = 1
+	popup.Text = "+$" .. tostring(math.floor(amount))
+	popup.TextColor3 = Config.Palette.MoneyGreen
+	popup.TextSize = 24
+	popup.Font = Enum.Font.GothamBold
+	popup.TextXAlignment = Enum.TextXAlignment.Right
+	popup.Parent = gui
+	local tween = TweenService:Create(popup, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Position = UDim2.new(1, -16, 0, 140 + lane * 26),
+		TextTransparency = 1,
+	})
+	tween:Play()
+	tween.Completed:Connect(function()
+		popup:Destroy()
+	end)
+end
 
 syncEvent.OnClientEvent:Connect(function(snapshot)
 	cashLabel.Text = formatMoney(snapshot.Cash)
+	if lastCash ~= nil and snapshot.Cash > lastCash and snapshot.IncomePerSec > 0 then
+		spawnIncomePopup(snapshot.Cash - lastCash)
+	end
+	lastCash = snapshot.Cash
 	incomeLabel.Text = formatMoney(snapshot.IncomePerSec) .. "/s"
 	baseLabel.Text = "Base " .. tostring(snapshot.SlotsUsed) .. "/" .. tostring(snapshot.SlotsTotal)
 		.. "  •  Rebirths: " .. tostring(snapshot.Rebirths)
