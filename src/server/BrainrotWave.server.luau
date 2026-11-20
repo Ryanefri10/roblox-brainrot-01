@@ -4,6 +4,8 @@
 -- while carrying a brainrot, you drop it and it walks back to the belt;
 -- caught outside empty-handed, you are only knocked gently back toward
 -- home. Nobody dies, nothing is lost, and the warning is impossible to miss.
+-- (v7: a Golden brainrot in your hands is too precious to wash away —
+-- the wave only knocks you home and you keep it.)
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -55,6 +57,18 @@ local function sweepPlayer(player, playerState)
 	if playerState.CarryingId then
 		local record = playerState.Brainrots[playerState.CarryingId]
 		if record then
+			-- v7: a Golden brainrot is too precious to wash away — the
+			-- wave knocks its carrier back toward home, but the
+			-- brainrot stays in their hands.
+			if record.Mutation and record.Mutation.Name == "Gold" then
+				local center = playerState.PlotIndex ~= 0 and Config.plotCenter(playerState.PlotIndex) or Vector3.new(0, 0, 68)
+				local direction = Vector3.new(center.X - root.Position.X, 0, center.Z - root.Position.Z)
+				if direction.Magnitude > 1 then
+					direction = direction / direction.Magnitude
+					root.CFrame = root.CFrame + direction * 12
+				end
+				return
+			end
 			playerState.Brainrots[record.Id] = nil
 			State.clearCarrying(playerState, record.Id)
 			State.returnBrainrotToBelt(record)

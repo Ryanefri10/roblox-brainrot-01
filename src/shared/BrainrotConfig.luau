@@ -29,6 +29,7 @@ Config.Palette = {
 	TitleYellow = Color3.fromRGB(255, 214, 64),
 	MoneyGreen = Color3.fromRGB(80, 220, 120),
 	DangerRed = Color3.fromRGB(255, 70, 70),
+	Gold = Color3.fromRGB(255, 215, 0),
 }
 
 Config.Rarities = {
@@ -166,6 +167,18 @@ Config.Characters = {
 			{ "ShoeL", { 0.9, 0.5, 1.4 }, { -0.6, -1.9, 0.3 }, "3C2A1A" },
 			{ "ShoeR", { 0.9, 0.5, 1.4 }, { 0.6, -1.9, 0.3 }, "3C2A1A" },
 		} },
+	{ Id = "la-vaca-saturno", Name = "La Vaca Saturno Saturnita", Rarity = "Mythic",
+		Price = 200000, Income = 5000, Weight = 1.0, Scale = 1.3, Body = "C8A06A", Head = "D8B078",
+		Blurb = "A cow with Saturn on its head. Moos in orbit.",
+		Extras = {
+			{ "SaturnRing", { 4.6, 0.3, 4.6 }, { 0, 2.7, 0 }, "FFD700", nil, "Neon" },
+			{ "HornL", { 0.4, 1.0, 0.4 }, { -0.9, 2.4, 0 }, "F0E6D2" },
+			{ "HornR", { 0.4, 1.0, 0.4 }, { 0.9, 2.4, 0 }, "F0E6D2" },
+			{ "Spot1", { 0.9, 0.9, 0.2 }, { -0.6, 0.6, 1.0 }, "3C2A1A" },
+			{ "Spot2", { 0.8, 0.8, 0.2 }, { 0.6, -0.2, 1.0 }, "3C2A1A" },
+			{ "Bell", { 0.7, 0.7, 0.7 }, { 0, 0.7, 1.05 }, "FFD700", "Ball" },
+			{ "Tail", { 0.3, 1.6, 0.3 }, { 0, -0.2, -1.0 }, "3C2A1A" },
+		} },
 	{ Id = "tralalero-tralala", Name = "Tralalero Tralala", Rarity = "Mythic",
 		Price = 240000, Income = 6000, Weight = 0.8, Scale = 1.35, Body = "5A7A9A", Head = "6A8AAA",
 		Blurb = "A shark in blue sneakers. Sings tralala. Never swims.",
@@ -247,16 +260,27 @@ Config.RebirthRequiredTotalEarned = 50000
 Config.RebirthCashAfter = 500
 Config.RebirthMultiplierPerRebirth = 0.5
 
+-- Golden Rush: a timed event, separate from the random Gold mutation
+-- below. Every CycleSeconds a rush starts and lasts DurationSeconds;
+-- while it runs every brainrot that spawns is guaranteed Golden (2x
+-- income), the spawner announces it, and the dock beacon burns gold.
+Config.GoldenRush = {
+	CycleSeconds = 180,
+	DurationSeconds = 30,
+}
+
 -- Missions: the game's goal, shown as a checklist on the left of the
--- screen. Finish all 5 and you WIN — the game has a clear ending.
+-- screen. Finish all 6 and you WIN — the game has a clear ending.
 -- Kinds: "bought" = brainrots owned (anywhere), "based" = brainrots
--- standing on your base, "earned" = TotalEarned dollars.
+-- standing on your base, "earned" = TotalEarned dollars,
+-- "golden" = Golden brainrots standing on your base.
 Config.Missions = {
 	{ Id = "buy-first", Kind = "bought", Target = 1, Reward = 250, Text = "Buy your first brainrot" },
 	{ Id = "earn-1000", Kind = "earned", Target = 1000, Reward = 500, Text = "Earn $1,000 in total" },
 	{ Id = "own-four", Kind = "based", Target = 4, Reward = 1000, Text = "Put 4 brainrots on your base" },
 	{ Id = "earn-5000", Kind = "earned", Target = 5000, Reward = 2000, Text = "Earn $5,000 in total" },
 	{ Id = "fill-base", Kind = "based", Target = 8, Reward = 5000, Text = "Fill your base: 8/8 brainrots" },
+	{ Id = "catch-golden", Kind = "golden", Target = 1, Reward = 3000, Text = "Catch a GOLDEN brainrot (2x income)" },
 }
 
 Config.Belt = {

@@ -10,7 +10,11 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("BrainrotConfig"))
 local Models = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("BrainrotModels"))
+local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("BrainrotRemotes"))
 local State = require(script.Parent:WaitForChild("BrainrotState"))
+
+local remotes = Remotes.getRemotes()
+local goldenAlert = remotes:WaitForChild("GoldenAlert")
 
 local BeltFolder = Instance.new("Folder")
 BeltFolder.Name = "BeltBrainrots"
@@ -40,7 +44,20 @@ end
 
 local function spawnBrainrotOnBelt()
 	local character = Config.rollCharacter()
-	local mutation = Config.rollMutation()
+	-- v7 Golden Rush: while a rush is live every spawn is guaranteed
+	-- Golden (2x income), so the whole belt turns gold at once; the
+	-- random Gold mutation still rolls as usual outside a rush.
+	local mutation
+	if State.isGoldenRush() then
+		for _, candidate in ipairs(Config.Mutations) do
+			if candidate.Name == "Gold" then
+				mutation = candidate
+				break
+			end
+		end
+	else
+		mutation = Config.rollMutation()
+	end
 	local model = Models.buildBrainrot(character, mutation)
 	model.Parent = BeltFolder
 	local record = State.newBrainrotRecord(character, mutation, model)
@@ -150,6 +167,24 @@ task.spawn(function()
 		if not ok then
 			warn("BrainrotSpawner: spawn failed: " .. tostring(err))
 		end
+	end
+end)
+
+-- v7 Golden Rush cycle: every CycleSeconds a rush opens for
+-- DurationSeconds. The start and the end are announced to every client
+-- (the client shows a gold banner with the countdown), and the clock
+-- lives in BrainrotState so the spawner, the world beacon and the HUD
+-- all read the same window.
+task.spawn(function()
+	while true do
+		local waitFor = math.max(0, State.NextGoldenRushAt - os.clock())
+		task.wait(waitFor)
+		State.GoldenRushUntil = os.clock() + Config.GoldenRush.DurationSeconds
+		goldenAlert:FireAllClients("rush", Config.GoldenRush.DurationSeconds)
+		task.wait(Config.GoldenRush.DurationSeconds)
+		State.GoldenRushUntil = 0
+		State.NextGoldenRushAt = os.clock() + Config.GoldenRush.CycleSeconds
+		goldenAlert:FireAllClients("over")
 	end
 end)
 

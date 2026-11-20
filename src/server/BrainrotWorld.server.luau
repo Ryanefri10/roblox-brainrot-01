@@ -210,6 +210,28 @@ moon.Shape = Enum.PartType.Ball
 moon.CanCollide = false
 addLight(moon, Palette.MoonPale, 1, 200)
 
+-- v7 Golden Beacon: a gold pillar at the dock (its part is defined in
+-- default.project.json so it ships in the place file). A light is
+-- attached here and a loop below burns it bright gold while a Golden
+-- Rush is live, so the whole bay can see the rush from anywhere.
+local beacon = Workspace:WaitForChild("GoldenBeacon")
+local beaconLight = addLight(beacon, Palette.Gold, 0.5, 30)
+task.spawn(function()
+	local State = require(script.Parent:WaitForChild("BrainrotState"))
+	while true do
+		task.wait(0.5)
+		if State.isGoldenRush() then
+			beacon.Transparency = 0
+			beaconLight.Brightness = 3
+			beaconLight.Range = 60
+		else
+			beacon.Transparency = 0.6
+			beaconLight.Brightness = 0.5
+			beaconLight.Range = 30
+		end
+	end
+end)
+
 math.randomseed(20261117)
 for i = 1, 48 do
 	local angle = math.random() * math.pi * 2

@@ -16,6 +16,52 @@ State.NextPlot = 1
 
 State.NextWaveAt = 0 -- os.clock() time of the next tsunami, set by the wave script
 
+-- v7 Golden Rush clock, owned by the spawner: NextGoldenRushAt is the
+-- os.clock() time the next rush starts, GoldenRushUntil the time the
+-- running rush ends (0 when no rush is live).
+State.NextGoldenRushAt = os.clock() + Config.GoldenRush.CycleSeconds
+State.GoldenRushUntil = 0
+
+function State.isGoldenRush()
+	return os.clock() < State.GoldenRushUntil
+end
+
+function State.goldenSecondsLeft()
+	return math.max(0, State.GoldenRushUntil - os.clock())
+end
+
+-- v7 leaderboard: the top 5 earners in the server by TotalEarned, so
+-- every client can show the same ranking without its own bookkeeping.
+function State.topEarners()
+	local ranked = {}
+	for _, playerState in pairs(State.Players) do
+		if playerState.Player and playerState.Player.Parent then
+			table.insert(ranked, {
+				Name = playerState.Player.DisplayName,
+				Earned = math.floor(playerState.TotalEarned),
+			})
+		end
+	end
+	table.sort(ranked, function(a, b)
+		return a.Earned > b.Earned
+	end)
+	local top = {}
+	for i = 1, math.min(5, #ranked) do
+		top[i] = ranked[i]
+	end
+	return top
+end
+
+-- A player's rank (1-based) in the top earners, or 0 when unranked.
+function State.playerRank(playerState)
+	for i, entry in ipairs(State.topEarners()) do
+		if entry.Name == playerState.Player.DisplayName then
+			return i
+		end
+	end
+	return 0
+end
+
 function State.newPlayerState(player)
 	return {
 		Player = player,
@@ -46,6 +92,17 @@ function State.missionProgress(playerState, mission)
 		return State.slotsUsed(playerState)
 	elseif mission.Kind == "earned" then
 		return math.floor(playerState.TotalEarned)
+	elseif mission.Kind == "golden" then
+		-- Golden brainrots standing on the base: the v7 mission, only
+		-- completable by catching one during a Golden Rush or a lucky
+		-- random Gold roll and walking it home.
+		local count = 0
+		for _, record in pairs(playerState.Brainrots) do
+			if record.Place == "based" and record.Mutation and record.Mutation.Name == "Gold" then
+				count += 1
+			end
+		end
+		return count
 	end
 	return 0
 end
@@ -402,6 +459,10 @@ function State.syncSnapshot(playerState)
 		RebirthReady = playerState.TotalEarned >= Config.RebirthRequiredTotalEarned,
 		RebirthNeed = Config.RebirthRequiredTotalEarned,
 		WaveIn = math.floor(math.max(0, (State.NextWaveAt or 0) - os.clock())),
+		GoldenLeft = math.floor(State.goldenSecondsLeft()),
+		GoldenNextIn = math.floor(math.max(0, (State.NextGoldenRushAt or 0) - os.clock())),
+		Leaderboard = State.topEarners(),
+		Rank = State.playerRank(playerState),
 		Missions = missions,
 		Won = playerState.Won,
 		Notice = notice,

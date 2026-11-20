@@ -25,10 +25,30 @@ local function notify(player, text)
 	syncEvent:FireClient(player, snapshot)
 end
 
+-- v7: a server-wide shout when someone buys a mutated brainrot, so a
+-- Golden catch during a rush is a moment the whole server sees.
+local function notifyAll(text)
+	for _, other in ipairs(Players:GetPlayers()) do
+		local otherState = State.Players[other]
+		if otherState then
+			local snapshot = State.syncSnapshot(otherState)
+			snapshot.Notice = text
+			syncEvent:FireClient(other, snapshot)
+		end
+	end
+end
+
 buyEvent.OnServerEvent:Connect(function(player, brainrotId)
 	local ok, message = State.buyBrainrot(player, brainrotId)
 	if ok then
 		notify(player, "You bought " .. tostring(message) .. "! Walk it home to your base!")
+		local playerState = State.Players[player]
+		if playerState and playerState.CarryingId then
+			local record = playerState.Brainrots[playerState.CarryingId]
+			if record and record.Mutation then
+				notifyAll("⭐ " .. player.DisplayName .. " bought a " .. record.Mutation.Name:upper() .. " " .. record.Character.Name .. "!")
+			end
+		end
 	else
 		notify(player, tostring(message))
 	end

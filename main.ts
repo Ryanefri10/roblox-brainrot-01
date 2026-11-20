@@ -23,6 +23,11 @@
 // (v6: the Mythic shark Tralalero Tralala joins the cast, the client
 // warns the victim with a red banner while a steal is channelling,
 // and PLAY.json is validated before anything is copied.)
+// (v7: the Mythic cow La Vaca Saturno Saturnita joins the cast, a
+// Golden Rush turns every spawn Golden for 30s every 3 minutes, a
+// top-earners leaderboard and a 6th mission (catch a Golden) arrive,
+// and PLAY.json must carry version 7 — the gate below refuses a stale
+// place file from an older build.)
 //
 // Every name under /output starts with a letter, a digit or _ and holds only letters, digits, . _ and -: the
 // grader fails an entry whose output holds any other, so a file such as .gitkeep or .DS_Store copied in fails it.
@@ -55,10 +60,15 @@ if (statSync(placeFile).size > 33554432) {
 // PLAY.json must name a real published place: parse it and check its
 // url, place_id and universe_id now, instead of handing in an entry
 // the play-link lookup refuses.
-const playLink = JSON.parse(readFileSync(join(here, 'PLAY.json'), 'utf8')) as { url?: unknown; place_id?: unknown; universe_id?: unknown };
+const playLink = JSON.parse(readFileSync(join(here, 'PLAY.json'), 'utf8')) as { url?: unknown; place_id?: unknown; universe_id?: unknown; version?: unknown };
 const playMatch = typeof playLink.url === 'string' && /^https:\/\/www\.roblox\.com\/games\/(\d+)/.exec(playLink.url);
 if (!playMatch || Number(playMatch[1]) !== playLink.place_id || typeof playLink.universe_id !== 'number' || playLink.universe_id <= 0) {
 	throw new Error('PLAY.json is not a valid play link: url must be https://www.roblox.com/games/<placeId> with a matching place_id and a positive universe_id');
+}
+// v7: the place file and PLAY.json move together — refuse a stale
+// PLAY.json from an older build so a v6 place can never ship as v7.
+if (typeof playLink.version !== 'number' || playLink.version < 7) {
+	throw new Error('PLAY.json version is below 7: rebuild the v7 place with Rojo and bump PLAY.json');
 }
 
 /** cpSync's filter: leave out every file and directory whose name starts with a dot (.gitkeep, .DS_Store, .git). */

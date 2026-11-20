@@ -59,6 +59,12 @@ local function setupPlayer(player)
 	earned.Name = "Earned"
 	earned.Value = 0
 	earned.Parent = leaderstats
+	-- v7: the player's live rank on the top-earners leaderboard, so the
+	-- built-in Roblox leaderboard shows position as well as earnings.
+	local rank = Instance.new("IntValue")
+	rank.Name = "Rank"
+	rank.Value = 0
+	rank.Parent = leaderstats
 
 	syncEvent:FireClient(player, State.syncSnapshot(playerState))
 end
@@ -97,6 +103,11 @@ task.spawn(function()
 						local earned = leaderstats:FindFirstChild("Earned")
 						if earned then
 							earned.Value = math.floor(playerState.TotalEarned)
+						end
+						-- v7: rank follows the top-earners table every tick.
+						local rank = leaderstats:FindFirstChild("Rank")
+						if rank then
+							rank.Value = State.playerRank(playerState)
 						end
 					end
 				end

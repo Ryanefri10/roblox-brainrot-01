@@ -84,6 +84,20 @@ function Models.buildBrainrot(character, mutation)
 			nil,
 			"Neon"
 		)
+		-- v7: a Golden brainrot carries a floating gold star above its
+		-- head, so a 2x earner is spotted at a glance on the belt,
+		-- during a Golden Rush or from a lucky random roll alike.
+		if mutation.Name == "Gold" then
+			makePart(
+				"GoldenStar",
+				scaled(Vector3.new(1.0, 1.0, 1.0)),
+				scaled(Vector3.new(0, 3.4, 0)),
+				mutation.Color,
+				model,
+				"Ball",
+				"Neon"
+			)
+		end
 	end
 
 	local plate = Instance.new("BillboardGui")

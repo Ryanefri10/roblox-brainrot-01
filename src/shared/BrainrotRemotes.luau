@@ -13,6 +13,7 @@ local EVENT_NAMES = {
 	"LockBase", -- client -> server, no argument
 	"BrainrotSync", -- server -> client, one state table per player
 	"WaveAlert", -- server -> client, ("warning", seconds) or ("wave", seconds)
+	"GoldenAlert", -- server -> client, ("rush", seconds) at rush start or ("over") at rush end
 }
 
 function Remotes.getRemotes()

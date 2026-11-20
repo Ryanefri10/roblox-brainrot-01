@@ -5,6 +5,8 @@
 -- bar. Nothing sits in the top-left corner, where Roblox puts its own
 -- menu buttons. The camera opens high over the bay, then swoops down
 -- behind the player.
+-- (v7: a top-earners leaderboard under the missions, and a gold
+-- Golden Rush banner with a countdown while a rush is live.)
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -20,6 +22,7 @@ local rebirthEvent = remotes:WaitForChild("Rebirth")
 local lockEvent = remotes:WaitForChild("LockBase")
 local syncEvent = remotes:WaitForChild("BrainrotSync")
 local waveAlert = remotes:WaitForChild("WaveAlert")
+local goldenEvent = remotes:WaitForChild("GoldenAlert")
 
 local function formatMoney(amount)
 	local text = tostring(math.floor(amount))
@@ -103,6 +106,14 @@ robberyPanel.Visible = false
 local robberyLabel = makeLabel("RobberyText", robberyPanel, UDim2.new(0, 0, 0, 0), UDim2.fromScale(1, 1), "", 20, Config.Palette.HudWhite)
 robberyLabel.TextXAlignment = Enum.TextXAlignment.Center
 
+-- v7 Golden Rush banner: gold, under the robbery banner, counting the
+-- rush down while every spawn on the belt is guaranteed Golden (2x).
+local goldenPanel = makePanel("GoldenPanel", gui, UDim2.new(0.5, 0, 0, 128), UDim2.fromOffset(560, 44), Vector2.new(0.5, 0))
+goldenPanel.BackgroundColor3 = Config.Palette.Gold
+goldenPanel.Visible = false
+local goldenLabel = makeLabel("GoldenText", goldenPanel, UDim2.new(0, 0, 0, 0), UDim2.fromScale(1, 1), "", 20, Color3.fromRGB(60, 40, 0))
+goldenLabel.TextXAlignment = Enum.TextXAlignment.Center
+
 local baseLabel = makeLabel("BaseInfo", gui, UDim2.new(1, -16, 0, 156), UDim2.fromOffset(280, 28), "Base 0/8  •  Rebirths: 0 (x1.0)", 18, Config.Palette.HudWhite, Vector2.new(1, 0))
 baseLabel.TextXAlignment = Enum.TextXAlignment.Right
 
@@ -157,7 +168,7 @@ lockButton.MouseButton1Click:Connect(function()
 	lockEvent:FireServer()
 end)
 
-local tutorialLabel = makeLabel("Tutorial", gui, UDim2.new(0.5, 0, 0, 90), UDim2.fromOffset(640, 56), "🎯 Goal: finish the 5 missions on the left! First: buy a brainrot on the belt!", 26, Config.Palette.TitleYellow, Vector2.new(0.5, 0))
+local tutorialLabel = makeLabel("Tutorial", gui, UDim2.new(0.5, 0, 0, 90), UDim2.fromOffset(640, 56), "🎯 Goal: finish the 6 missions on the left! First: buy a brainrot on the belt!", 26, Config.Palette.TitleYellow, Vector2.new(0.5, 0))
 tutorialLabel.TextXAlignment = Enum.TextXAlignment.Center
 tutorialLabel.TextWrapped = true
 tutorialLabel.BackgroundTransparency = 0.3
@@ -167,16 +178,26 @@ tutorialCorner.CornerRadius = UDim.new(0, 12)
 tutorialCorner.Parent = tutorialLabel
 
 -- Missions panel (left side, under Roblox's own menu buttons): the
--- game's goal as a checklist. Finishing all 5 wins the game.
-local missionPanel = makePanel("MissionPanel", gui, UDim2.new(0, 16, 0, 150), UDim2.fromOffset(330, 250))
-makeLabel("MissionTitle", missionPanel, UDim2.new(0, 14, 0, 10), UDim2.new(1, -28, 0, 28), "🎯 MISSIONS — finish all 5 to WIN!", 20, Config.Palette.TitleYellow)
+-- game's goal as a checklist. Finishing all 6 wins the game.
+local missionPanel = makePanel("MissionPanel", gui, UDim2.new(0, 16, 0, 150), UDim2.fromOffset(330, 290))
+makeLabel("MissionTitle", missionPanel, UDim2.new(0, 14, 0, 10), UDim2.new(1, -28, 0, 28), "🎯 MISSIONS — finish all 6 to WIN!", 20, Config.Palette.TitleYellow)
 local missionLabels = {}
 for i, mission in ipairs(Config.Missions) do
 	local label = makeLabel("Mission" .. i, missionPanel, UDim2.new(0, 14, 0, 44 + (i - 1) * 34), UDim2.new(1, -28, 0, 30), "", 17, Config.Palette.HudWhite)
 	missionLabels[i] = label
 end
-local winLabel = makeLabel("WinLabel", missionPanel, UDim2.new(0, 14, 0, 214), UDim2.new(1, -28, 0, 28), "🏆 YOU WIN! Brainrot King!", 20, Config.Palette.MoneyGreen)
+local winLabel = makeLabel("WinLabel", missionPanel, UDim2.new(0, 14, 0, 252), UDim2.new(1, -28, 0, 28), "🏆 YOU WIN! Brainrot King!", 20, Config.Palette.MoneyGreen)
 winLabel.Visible = false
+
+-- v7 leaderboard panel (left side, under the missions): the top 5
+-- earners in the server, refreshed on every sync; your own row glows
+-- green, and your rank also shows in the built-in leaderstats.
+local leaderboardPanel = makePanel("LeaderboardPanel", gui, UDim2.new(0, 16, 0, 456), UDim2.fromOffset(330, 196))
+makeLabel("LeaderboardTitle", leaderboardPanel, UDim2.new(0, 14, 0, 10), UDim2.new(1, -28, 0, 28), "🏆 TOP EARNERS", 20, Config.Palette.TitleYellow)
+local leaderboardLabels = {}
+for i = 1, 5 do
+	leaderboardLabels[i] = makeLabel("Top" .. i, leaderboardPanel, UDim2.new(0, 14, 0, 44 + (i - 1) * 30), UDim2.new(1, -28, 0, 28), "", 17, Config.Palette.HudWhite)
+end
 
 local bannerLabel = makeLabel("WaveBanner", gui, UDim2.new(0.5, 0, 0, 160), UDim2.fromOffset(720, 64), "", 32, Config.Palette.DangerRed, Vector2.new(0.5, 0))
 bannerLabel.TextXAlignment = Enum.TextXAlignment.Center
@@ -296,6 +317,27 @@ syncEvent.OnClientEvent:Connect(function(snapshot)
 	else
 		robberyPanel.Visible = false
 	end
+	-- v7: the gold banner counts the rush down from the sync (the
+	-- GoldenAlert event below also announces the start and the end).
+	if snapshot.GoldenLeft and snapshot.GoldenLeft > 0 then
+		goldenPanel.Visible = true
+		goldenLabel.Text = "⭐ GOLDEN RUSH! " .. tostring(snapshot.GoldenLeft) .. "s — every spawn is GOLDEN (2x)!"
+	else
+		goldenPanel.Visible = false
+	end
+	-- v7: top earners, refreshed on every sync; your own row glows.
+	if snapshot.Leaderboard then
+		for i, label in ipairs(leaderboardLabels) do
+			local entry = snapshot.Leaderboard[i]
+			if entry then
+				local medal = i == 1 and "🥇 " or (i == 2 and "🥈 " or (i == 3 and "🥉 " or "  " .. tostring(i) .. ". "))
+				label.Text = medal .. entry.Name .. " — " .. formatMoney(entry.Earned)
+				label.TextColor3 = (snapshot.Rank == i) and Config.Palette.MoneyGreen or Config.Palette.HudWhite
+			else
+				label.Text = ""
+			end
+		end
+	end
 	if snapshot.Missions then
 		for i, mission in ipairs(snapshot.Missions) do
 			local label = missionLabels[i]
@@ -337,8 +379,7 @@ task.spawn(function()
 	end
 end)
 
-waveAlert.OnClientEvent:Connect(function(kind, seconds)
-	if kind == "warning" then
+waveAlert.OnClientEvent:Connect(function(kind, seconds)	if kind == "warning" then
 		bannerLabel.Visible = true
 		bannerLabel.Text = "🌊 TSUNAMI IN " .. tostring(seconds) .. "s — RUN TO YOUR BASE!"
 		for left = seconds - 1, 1, -1 do
@@ -351,6 +392,18 @@ waveAlert.OnClientEvent:Connect(function(kind, seconds)
 		bannerLabel.Text = "🌊 TSUNAMI! STAY ON YOUR BASE!"
 		task.wait(seconds)
 		bannerLabel.Visible = false
+	end
+end)
+
+-- v7: the Golden Rush announcement — the banner appears at the start
+-- with the full countdown and hides when the rush ends (the per-second
+-- sync above keeps the countdown ticking in between).
+goldenEvent.OnClientEvent:Connect(function(kind, seconds)
+	if kind == "rush" then
+		goldenPanel.Visible = true
+		goldenLabel.Text = "⭐ GOLDEN RUSH! " .. tostring(seconds) .. "s — every spawn is GOLDEN (2x)!"
+	elseif kind == "over" then
+		goldenPanel.Visible = false
 	end
 end)
 
